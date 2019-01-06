@@ -6,10 +6,13 @@
 #define TABLEWARE_RECOGNITION_SEGMENTATION_H
 
 #include <opencv4/opencv2/opencv.hpp>
+#include <vector>
 
 using namespace cv;
 
 Mat &threshold(Mat &I, Mat &O, uchar low, uchar high);
+
+Mat &floodFill(Mat &I, Mat &O, const std::vector<Point> &points, uchar level);
 
 Mat &erode(Mat &I, Mat &K);
 

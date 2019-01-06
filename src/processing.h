@@ -11,6 +11,8 @@ using namespace cv;
 
 Mat &toGrayscale(const Mat &I, Mat &O);
 
+Mat &toHSL(const Mat &I, Mat &O);
+
 Mat &adjustBrightness(Mat &I, int value);
 
 Mat &adjustContrast(Mat &I, int value);

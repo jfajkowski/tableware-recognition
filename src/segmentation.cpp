@@ -3,6 +3,7 @@
 //
 
 #include "segmentation.h"
+#include "util.h"
 
 Mat &threshold(Mat &I, Mat &O, uchar low, uchar high) {
     CV_Assert(I.type() == CV_8UC1);
@@ -12,6 +13,39 @@ Mat &threshold(Mat &I, Mat &O, uchar low, uchar high) {
             O.at<uchar>(row, col) = static_cast<uchar>(pixel >= low && pixel <= high ? 255 : 0);
 
         }
+    }
+    return O;
+}
+
+void floodFill(Mat &I, Mat &O, int row, int col, uchar low, uchar high, uchar new_color) {
+    if (row < 0 || row >= I.rows) {
+        return;
+    }
+    if (col < 0 || col >= I.cols) {
+        return;
+    }
+    if (O.at<uchar>(row, col) != 0) {
+        return;
+    }
+
+    uchar old_color = I.at<uchar>(row, col);
+    if (old_color > low && old_color < high) {
+        O.at<uchar>(row, col) = new_color;
+        floodFill(I, O, row + 1, col, low, high, new_color);
+        floodFill(I, O, row, col + 1, low, high, new_color);
+        floodFill(I, O, row - 1, col, low, high, new_color);
+        floodFill(I, O, row, col - 1, low, high, new_color);
+    }
+}
+
+Mat &floodFill(Mat &I, Mat &O, const std::vector<Point> &points, uchar level) {
+    CV_Assert(I.type() == CV_8UC1 && points.size() <= 255);
+    for (size_t i = 1; i < points.size(); ++i) {
+        int row = points.at(i).y;
+        int col = points.at(i).x;
+        uchar low = static_cast<uchar>(truncate(I.at<uchar>(row, col) - level));
+        uchar high = static_cast<uchar>(truncate(I.at<uchar>(row, col) + level));
+        floodFill(I, O, row, col, low, high, static_cast<uchar>(i * 255 / points.size()));
     }
     return O;
 }

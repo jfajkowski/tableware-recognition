@@ -16,6 +16,56 @@ Mat &toGrayscale(const Mat &I, Mat &O) {
     return O;
 }
 
+Mat &toHSL(const Mat &I, Mat &O) {
+    CV_Assert(I.type() == CV_8UC3 && O.type() == CV_8UC3 && I.size() == O.size());
+    for (int row = 0; row < I.rows; ++row) {
+        for (int col = 0; col < I.cols; ++col) {
+            Vec3b pixel = I.at<Vec3b>(row, col);
+
+            float h, s, l;
+
+            float r = (pixel[2] / 255.0f);
+            float g = (pixel[1] / 255.0f);
+            float b = (pixel[0] / 255.0f);
+
+            float min = std::min(std::min(r, g), b);
+            float max = std::max(std::max(r, g), b);
+            float delta = max - min;
+
+            l = (max + min) / 2;
+
+            if (delta == 0) {
+                h = 0;
+                s = 0.0f;
+            } else {
+                s = (l <= 0.5) ? (delta / (max + min)) : (delta / (2 - max - min));
+
+                float hue;
+
+                if (r == max) {
+                    hue = ((g - b) / 6) / delta;
+                } else if (g == max) {
+                    hue = (1.0f / 3) + ((b - r) / 6) / delta;
+                } else {
+                    hue = (2.0f / 3) + ((r - g) / 6) / delta;
+                }
+
+                if (hue < 0)
+                    hue += 1;
+                if (hue > 1)
+                    hue -= 1;
+
+                h = (int) (hue * 360);
+            }
+
+            O.at<Vec3b>(row, col) = Vec3b(static_cast<uchar>(l * 255),
+                                          static_cast<uchar>(s * 255),
+                                          static_cast<uchar>(h / 2));
+        }
+    }
+    return O;
+}
+
 void adjustBrightness(Vec3b &pixel, int value) {
     pixel[0] = static_cast<uchar>(truncate(pixel[0] + value));
     pixel[1] = static_cast<uchar>(truncate(pixel[1] + value));
