@@ -7,6 +7,7 @@
 
 #include <opencv4/opencv2/opencv.hpp>
 #include <vector>
+#include <ostream>
 
 using namespace cv;
 
@@ -16,5 +17,27 @@ void hishow(const String &winname, Mat &I, int hist_size = 256, float lo = 0, fl
             bool accumulate = false);
 
 std::vector<Point> generatePoints(Mat &I, size_t size, bool grid);
+
+class Matrix {
+private:
+    size_t mRows;
+    size_t mCols;
+    std::vector<double> mData;
+
+public:
+    Matrix();
+
+    Matrix(size_t rows, size_t cols);
+
+    Matrix(const Matrix &matrix);
+
+    double &operator()(size_t i, size_t j);
+
+    double operator()(size_t i, size_t j) const;
+
+    void addRow(std::vector<double> row);
+
+    friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix);
+};
 
 #endif //TABLEWARE_RECOGNITION_UTIL_H

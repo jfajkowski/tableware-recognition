@@ -73,3 +73,53 @@ std::vector<Point> generatePoints(Mat &I, size_t size, bool grid) {
     }
     return points;
 }
+
+Matrix::Matrix()
+        : Matrix(0, 0) {
+
+}
+
+Matrix::Matrix(size_t rows, size_t cols)
+        : mRows(rows),
+          mCols(cols),
+          mData(rows * cols) {
+}
+
+Matrix::Matrix(const Matrix &matrix) {
+    mRows = matrix.mRows;
+    mCols = matrix.mCols;
+    mData = matrix.mData;
+}
+
+double &Matrix::operator()(size_t i, size_t j) {
+    return mData[i * mCols + j];
+}
+
+double Matrix::operator()(size_t i, size_t j) const {
+    return mData[i * mCols + j];
+}
+
+void Matrix::addRow(std::vector<double> row) {
+    if (mRows == 0) {
+        mCols = row.size();
+    } else if (row.size() != mCols) {
+        throw std::invalid_argument("Row should have same column number as matrix!");
+    }
+    mData.reserve(mData.size() + row.size());
+    mData.insert(mData.end(), row.begin(), row.end());
+    mRows += 1;
+}
+
+std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
+    for (size_t i = 0; i < matrix.mRows; ++i) {
+        for (size_t j = 0; j < matrix.mCols; ++j) {
+            os << matrix(i, j);
+            if (j != matrix.mCols - 1) {
+                os << ",";
+            }
+        }
+        os << std::endl;
+    }
+    os << std::endl;
+    return os;
+}

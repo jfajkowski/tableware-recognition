@@ -10,7 +10,7 @@ Mat &threshold(Mat &I, Mat &O, uchar low, uchar high) {
     for (int row = 0; row < I.rows; ++row) {
         for (int col = 0; col < I.cols; ++col) {
             uchar pixel = I.at<uchar>(row, col);
-            O.at<uchar>(row, col) = static_cast<uchar>(pixel >= low && pixel <= high ? 255 : 0);
+            O.at<uchar>(row, col) = static_cast<uchar>(pixel >= low && pixel <= high ? 1 : 0);
 
         }
     }
