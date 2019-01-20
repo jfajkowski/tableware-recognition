@@ -100,3 +100,6 @@ fabric.properties
 
 # Data directory
 data
+
+# IntelliJ stuff
+.idea

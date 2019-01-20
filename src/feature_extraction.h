@@ -14,5 +14,6 @@ double calculatePerimeter(const Mat &I);
 double calculateShapeCoefficient(double area, double perimeter);
 double calculateMomentInvariant(const Mat &I, int n);
 double calculateTilt(const Mat &I);
+Mat boundingBox(const Mat &I);
 
 #endif //TABLEWARE_RECOGNITION_FEATURE_EXTRACTION_H

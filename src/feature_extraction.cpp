@@ -108,3 +108,17 @@ double calculateTilt(const Mat &I) {
         return alpha;
     }
 }
+
+Mat boundingBox(const Mat &I) {
+    CV_Assert(I.type() == CV_8UC1);
+    int n = I.rows, s = 0, w = I.cols, e = 0;
+    for (int y = 1; y < I.rows; ++y) {
+        for (int x = 1; x < I.cols; ++x) {
+            n = I.at<uchar>(y - 1, x) == I.at<uchar>(y, x) ? n : min(n, y);
+            s = I.at<uchar>(y - 1, x) == I.at<uchar>(y, x) ? s : max(s, y);
+            w = I.at<uchar>(y, x - 1) == I.at<uchar>(y, x) ? w : min(w, x);
+            e = I.at<uchar>(y, x - 1) == I.at<uchar>(y, x) ? e : max(e, x);
+        }
+    }
+    return Mat(I, Rect(w, n, e - w, s - n));
+}
