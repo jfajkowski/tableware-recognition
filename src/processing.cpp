@@ -98,23 +98,41 @@ Mat &adjustContrast(Mat &I, int value) {
 }
 
 Mat &filter(Mat &I, Mat &K) {
-    CV_Assert(I.type() == CV_8UC3 && K.rows % 2 == 1 && K.cols % 2 == 1);
+    CV_Assert((I.type() == CV_8UC1 || I.type() == CV_8UC3) && K.rows % 2 == 1 && K.cols % 2 == 1);
     Mat O;
     int pad_y = K.rows / 2;
     int pad_x = K.cols / 2;
     copyMakeBorder(I, O, pad_y, pad_y, pad_x, pad_x, BORDER_REPLICATE);
-    for (int c = 0; c < 3; c++) {
+    if (I.type() == CV_8UC3) {
+        for (int c = 0; c < 3; c++) {
+            for (int O_y = pad_y; O_y < O.rows - pad_y; ++O_y) {
+                for (int O_x = pad_x; O_x < O.cols - pad_x; ++O_x) {
+                    int I_y = O_y - pad_y;
+                    int I_x = O_x - pad_x;
+                    double accumulator = 0;
+                    for (int K_y = 0; K_y < K.rows; ++K_y) {
+                        for (int K_x = 0; K_x < K.cols; ++K_x) {
+                            uchar pixel = O.at<Vec3b>(I_y + K_y, I_x + K_x)[c];
+                            accumulator += pixel * K.at<double>(K_y, K_x);
+                        }
+                    }
+                    I.at<Vec3b>(I_y, I_x)[c] = static_cast<uchar>(truncate(accumulator));
+                }
+            }
+        }
+    } else {
         for (int O_y = pad_y; O_y < O.rows - pad_y; ++O_y) {
             for (int O_x = pad_x; O_x < O.cols - pad_x; ++O_x) {
+                int I_y = O_y - pad_y;
+                int I_x = O_x - pad_x;
                 double accumulator = 0;
                 for (int K_y = 0; K_y < K.rows; ++K_y) {
                     for (int K_x = 0; K_x < K.cols; ++K_x) {
-                        accumulator += O.at<Vec3b>(O_y + K_y, O_x + K_x)[c] * K.at<double>(K_y, K_x);
+                        uchar pixel = O.at<uchar>(I_y + K_y, I_x + K_x);
+                        accumulator += pixel * K.at<double>(K_y, K_x);
                     }
                 }
-                int I_y = O_y - pad_y;
-                int I_x = O_x - pad_x;
-                I.at<Vec3b>(I_y, I_x)[c] = static_cast<uchar>(truncate(accumulator));
+                I.at<uchar>(I_y, I_x) = static_cast<uchar>(truncate(accumulator));
             }
         }
     }

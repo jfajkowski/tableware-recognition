@@ -40,7 +40,11 @@ public:
 
     std::vector<double> unwrap() const;
 
-    Vector normalize() const;
+    Vector normalize(double mean, double variance) const;
+
+    double mean() const;
+
+    double variance() const;
 
     size_t argmax() const;
 

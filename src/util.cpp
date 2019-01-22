@@ -11,6 +11,17 @@ double truncate(double value) {
     return value;
 }
 
+void bimshow(const String &winname, Mat &I) {
+    CV_Assert(I.type() == CV_8UC1);
+    Mat S(I.size(), CV_8UC1);
+    for (int row = 0; row < I.rows; ++row) {
+        for (int col = 0; col < I.cols; ++col) {
+            S.at<uchar>(row, col) = static_cast<uchar>(I.at<uchar>(row, col) == 1 ? 255 : 0);
+        }
+    }
+    imshow(winname, S);
+}
+
 void hishow(const String &winname, Mat &I, int hist_size, float lo, float hi, bool uniform, bool accumulate) {
     CV_Assert(I.type() == CV_8UC3);
     std::vector<Mat> bgr_planes;
@@ -59,8 +70,8 @@ std::vector<Point> generatePoints(Mat &I, size_t size, bool grid) {
     RNG rng(0xFFFFFFFF);
     std::vector<Point> points;
     if (grid) {
-        int grid_x = static_cast<int>(I.cols / size);
-        int grid_y = static_cast<int>(I.rows / size);
+        int grid_x = static_cast<int>(I.cols / size) + 1;
+        int grid_y = static_cast<int>(I.rows / size) + 1;
         for (int row = 0; row < I.rows; row += grid_y) {
             for (int col = 0; col < I.cols; col += grid_x) {
                 points.emplace_back(rng.uniform(row, row + grid_y), rng.uniform(col, col + grid_x));
@@ -90,24 +101,29 @@ std::vector<double> Vector::unwrap() const {
     return std::vector<double>(_data);
 }
 
-Vector Vector::normalize() const {
-    double sum_mean = 0;
-    for (auto v: _data) {
-        sum_mean += v;
-    }
-    double mean = sum_mean / _size;
-
-    double sum_variance = 0;
-    for (auto v: _data) {
-        sum_variance += std::pow(v - mean, 2);
-    }
-    double variance = sum_variance / _size;
-
+Vector Vector::normalize(double mean, double variance) const {
     auto result = unwrap();
     for (auto &v: result) {
         v = (v - mean) / std::sqrt(variance);
     }
     return Vector(result);
+}
+
+double Vector::mean() const {
+    double sum_mean = 0;
+    for (auto v: _data) {
+        sum_mean += v;
+    }
+    return sum_mean / _size;
+}
+
+double Vector::variance() const {
+    double sum_variance = 0;
+    double mean = this->mean();
+    for (auto v: _data) {
+        sum_variance += std::pow(v - mean, 2);
+    }
+    return sum_variance / _size;
 }
 
 size_t Vector::argmax() const {
@@ -236,7 +252,7 @@ int Matrix::rowPosition(Vector row) {
 }
 
 Vector Matrix::getCol(size_t n) const {
-    if (n >= _rows) {
+    if (n >= _cols) {
         throw std::invalid_argument("There are not enough cols in matrix!");
     }
     Vector col(_rows);
@@ -269,19 +285,7 @@ std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
         }
         os << std::endl;
     }
-    os << std::endl;
     return os;
-}
-
-void bimshow(const String &winname, Mat &I) {
-    CV_Assert(I.type() == CV_8UC1);
-    Mat S(I.size(), CV_8UC1);
-    for (int row = 0; row < I.rows; ++row) {
-        for (int col = 0; col < I.cols; ++col) {
-            S.at<uchar>(row, col) = static_cast<uchar>(I.at<uchar>(row, col) == 1 ? 255 : 0);
-        }
-    }
-    imshow(winname, S);
 }
 
 size_t Matrix::rows() const {

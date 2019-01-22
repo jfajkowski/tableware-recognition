@@ -5,6 +5,14 @@
 #include "classifier.h"
 
 void Classifier::fit(const Matrix &X, const Matrix &y) {
+    Matrix X_norm;
+    for (size_t i = 0; i < X.cols(); ++i) {
+        Vector col = X.getCol(i);
+        means.push_back(col.mean());
+        variances.push_back(col.variance());
+        X_norm.addCol(col.normalize(means[i], variances[i]));
+    }
+
     Matrix y_distinct;
     std::map<size_t, Vector> index_to_feature_vector;
     std::map<size_t, double> index_to_example_counter;
@@ -14,14 +22,14 @@ void Classifier::fit(const Matrix &X, const Matrix &y) {
         if (y_distinct.rowPosition(y_row) == -1) {
             y_distinct.addRow(y_row);
             size_t index = y_distinct.rows() - 1;
-            index_to_feature_vector.emplace(index, Vector(X.cols()));
+            index_to_feature_vector.emplace(index, Vector(X_norm.cols()));
             index_to_example_counter.emplace(index, 0);
         }
     }
 
-    for (size_t i = 0; i < X.rows(); ++i) {
+    for (size_t i = 0; i < X_norm.rows(); ++i) {
         size_t index = static_cast<size_t>(y_distinct.rowPosition(y.getRow(i)));
-        index_to_feature_vector.at(index) += X.getRow(i);
+        index_to_feature_vector.at(index) += X_norm.getRow(i);
         index_to_example_counter.at(index) += 1;
     }
 
@@ -33,11 +41,18 @@ void Classifier::fit(const Matrix &X, const Matrix &y) {
 
 Matrix Classifier::predict_proba(const Matrix &X) {
     Matrix result;
-    for (size_t i = 0; i < X.rows(); ++i) {
+
+    Matrix X_norm;
+    for (size_t i = 0; i < X.cols(); ++i) {
+        Vector col = X.getCol(i);
+        X_norm.addCol(col.normalize(means[i], variances[i]));
+    }
+
+    for (size_t i = 0; i < X_norm.rows(); ++i) {
         std::vector<double> data(_model_y.cols());
         for (size_t j = 0; j < _model_y.rows(); ++j) {
             size_t class_index = _model_y.getRow(j).argmax();
-            data[class_index] = (1 / (1 + Vector::distance(_model_X.getRow(j), X.getRow(i))));
+            data[class_index] = (1 / (1 + Vector::distance(_model_X.getRow(j), X_norm.getRow(i))));
         }
         result.addRow(Vector(data));
     }

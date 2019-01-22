@@ -9,6 +9,8 @@
 
 class Classifier {
 private:
+    std::vector<double> means;
+    std::vector<double> variances;
     Matrix _model_X;
     Matrix _model_y;
 
